@@ -21,13 +21,17 @@ def get_info(url):
 
 def get_disk_info(url):
     disk = get_info(url)
-    return disk['sourceImage'].rsplit('/', 1)[-1], disk['type'].rsplit('/', 1)[-1]
+    return {'source_image': disk['sourceImage'].rsplit('/', 1)[-1],
+            'type': disk['type'].rsplit('/', 1)[-1],
+            'size': disk['sizeGb'],
+            }
 
 # print(get_disk_info(''))
-print(list_instances())
-
-# env = Environment(loader=FileSystemLoader('templates'))
-# template = env.get_template('compute_instance.j2')
-# template.globals['get_disk_info'] = get_disk_info
-# output_from_parsed_template = template.render(instances=list_instances())
-# print output_from_parsed_template
+# for i in list_instances():
+#     print(i)
+#
+env = Environment(loader=FileSystemLoader('templates'))
+template = env.get_template('compute_instance.j2')
+template.globals['get_disk_info'] = get_disk_info
+output_from_parsed_template = template.render(instances=list_instances())
+print output_from_parsed_template

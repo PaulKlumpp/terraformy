@@ -3,26 +3,45 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
   name         = "{{ instance['name'] }}"
   machine_type = "{{ instance['machineType'].rsplit('/', 1)[-1] }}"
   zone         = "{{ instance['zone'].rsplit('/', 1)[-1] }}"
-
-  {% if 'items' in instance['tags'] %}
+  {% if 'items' in instance['tags'] -%}
   tags = ["{{ instance['tags']['items']|join('", "') }}"]
-  {% endif %}
+  {%- endif %}
+
+  {% if 'items' in instance['metadata'] -%}
+  metadata = {
+    {% for i in instance['metadata']['items'] %}
+    {{ i['key'] }} = "{{ i['value'] }}"
+    {%- endfor %}
+  }
+  {% endif -%}
 
   boot_disk {
     initialize_params {
-      image = "{{ get_disk_info(instance['disks'][0]['source'])|first }}"
-      type  = "{{ get_disk_info(instance['disks'][0]['source'])|last }}"
+      {%- set disk = get_disk_info(instance['disks'][0]['source']) %}
+      image = "{{ disk['source_image'] }}"
+      type  = "{{ disk['type'] }}"
+      size  = "{{ disk['size'] }}"
     }
+    auto_delete = "{{ instance['disks'][0]['autoDelete'] }}"
+    device_name = "{{ instance['disks'][0]['deviceName'] }}"
   }
 
-  {% for int in instance['networkInterfaces'] %}
+  {% for int in instance['networkInterfaces'] -%}
   network_interface {
     network = "{{ int['network'].rsplit('/', 1)[-1] }}"
-    {% if 'accessConfigs' in int %}
-    access_config {}
-    {% endif %}
-  }
-  {% endfor %}
+    address = "{{ int['networkIP'] }}"
 
+    {% if 'accessConfigs' in int -%}
+    access_config {}
+    {%- endif %}
+  }
+  {% endfor -%}
+
+  can_ip_forward        = "{{ instance['canIpForward'] }}"
+  scheduling {
+    preemptible         = "{{ instance['scheduling']['preemptible'] }}"
+    on_host_maintenance = "{{ instance['scheduling']['onHostMaintenance'] }}"
+    automatic_restart   = "{{ instance['scheduling']['automaticRestart'] }}"
+  }
 }
-{% endfor %}
+{%- endfor -%}
