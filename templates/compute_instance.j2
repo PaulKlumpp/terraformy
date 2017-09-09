@@ -1,0 +1,28 @@
+{% for instance in instances %}
+resource "google_compute_instance" "{{ instance['name'] }}" {
+  name         = "{{ instance['name'] }}"
+  machine_type = "{{ instance['machineType'].rsplit('/', 1)[-1] }}"
+  zone         = "{{ instance['zone'].rsplit('/', 1)[-1] }}"
+
+  {% if 'items' in instance['tags'] %}
+  tags = ["{{ instance['tags']['items']|join('", "') }}"]
+  {% endif %}
+
+  boot_disk {
+    initialize_params {
+      image = "{{ get_disk_info(instance['disks'][0]['source'])|first }}"
+      type  = "{{ get_disk_info(instance['disks'][0]['source'])|last }}"
+    }
+  }
+
+  {% for int in instance['networkInterfaces'] %}
+  network_interface {
+    network = "{{ int['network'].rsplit('/', 1)[-1] }}"
+    {% if 'accessConfigs' in int %}
+    access_config {}
+    {% endif %}
+  }
+  {% endfor %}
+
+}
+{% endfor %}
