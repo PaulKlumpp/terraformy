@@ -2,7 +2,6 @@
     "version": 3,
     "terraform_version": "0.10.3",
     "serial": 3,
-    "lineage": "026a3b68-e8d6-4ab1-8ea7-2ad3620bf9a3",
     "modules": [
         {
             "path": [
@@ -17,14 +16,31 @@
                     "primary": {
                         "id": "{{ instance['name'] }}",
                         "attributes": {
+                            {%- set boot_disk = get_boot_disk_info(instance['disks']) %}
+                            {% set other_disks = get_other_disks(instance['disks'], boot_disk['index']) -%}
+                            {%- if other_disks|length > 0 -%}
+                            "attached_disk.#": "{{ other_disks | length }}",
+                            {% for disk in other_disks -%}
+                            "attached_disk.{{ loop.index -1 }}.device_name": "{{ disk['deviceName'] }}",
+                            "attached_disk.{{ loop.index -1  }}.disk_encryption_key_raw": "",
+                            "attached_disk.{{ loop.index -1 }}.disk_encryption_key_sha256": "",
+                            "attached_disk.{{ loop.index -1 }}.source": "{{ disk['source'] }}",
+                            {% endfor -%}
+                            {% else -%}
+                            "attached_disk.#": "0",
+                            {% endif -%}
                             "boot_disk.#": "1",
-                            "boot_disk.0.auto_delete": "{{ instance['disks'][0]['autoDelete'] | lower }}",
-                            "boot_disk.0.device_name": "{{instance['disks'][0]['deviceName']}}",
+                            "boot_disk.0.auto_delete": "{{ instance['disks'][boot_disk['index']]['autoDelete'] | lower }}",
+                            "boot_disk.0.device_name": "{{ instance['disks'][boot_disk['index']]['deviceName'] }}",
+                            {% if not boot_disk['existing'] -%}
                             "boot_disk.0.initialize_params.#": "1",
-                            {%- set disk = get_disk_info(instance['disks'][0]['source']) %}
-                            "boot_disk.0.initialize_params.0.image": "{{ disk['source_image'] }}",
-                            "boot_disk.0.initialize_params.0.size": "{{ disk['size'] }}",
-                            "boot_disk.0.initialize_params.0.type": "{{ disk['type'] }}",
+                            "boot_disk.0.initialize_params.0.image": "{{ boot_disk['source_image'] }}",
+                            "boot_disk.0.initialize_params.0.size": "{{ boot_disk['size'] }}",
+                            "boot_disk.0.initialize_params.0.type": "{{ boot_disk['type'] }}",
+                            {% else -%}
+                            "boot_disk.0.initialize_params.#": "0",
+                            "boot_disk.0.source": "{{ boot_disk['name'] }}",
+                            {% endif -%}
                             "can_ip_forward": "{{ instance['canIpForward'] | lower }}",
                             "id": "{{ instance['name'] }}",
                             "machine_type": "{{ instance['machineType'].rsplit('/', 1)[-1] }}",

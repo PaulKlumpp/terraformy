@@ -33,12 +33,12 @@ def get_boot_disk_info(disks):
                     'name': disk['name'],
                     }
 
-    # disk = get_info(url)
-    # return {'source_image': disk['sourceImage'].rsplit('/', 1)[-1],
-    #         'type': disk['type'].rsplit('/', 1)[-1],
-    #         'size': disk['sizeGb'],
-    #         }
-# print(get_info('https://www.googleapis.com/compute/v1/projects/infra-179014/zones/europe-west1-b/disks/instance-2'))
+
+def get_other_disks(disks, boot_disk_idx):
+    attached_disks = list(disks)
+    del attached_disks[boot_disk_idx]
+    return attached_disks
+
 # for i in list_instances():
 #     print(i)
 #
@@ -53,5 +53,6 @@ if len(sys.argv) > 1:
 else:
     raise ValueError('you need to specify to either generate config or state')
 template.globals['get_boot_disk_info'] = get_boot_disk_info
+template.globals['get_other_disks'] = get_other_disks
 output_from_parsed_template = template.render(instances=list_instances())
 print output_from_parsed_template

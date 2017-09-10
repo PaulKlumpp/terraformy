@@ -16,19 +16,29 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
   {% endif -%}
 
   boot_disk {
-  {%- set disk = get_boot_disk_info(instance['disks']) %}
-    {% if not disk['existing'] -%}
+  {%- set boot_disk = get_boot_disk_info(instance['disks']) %}
+    {% if not boot_disk['existing'] -%}
     initialize_params {
-      image = "{{ disk['source_image'] }}"
-      type  = "{{ disk['type'] }}"
-      size  = "{{ disk['size'] }}"
+      image = "{{ boot_disk['source_image'] }}"
+      type  = "{{ boot_disk['type'] }}"
+      size  = "{{ boot_disk['size'] }}"
     }
     {% else -%}
-    source = "{{ disk['name'] }}"
+    source      = "{{ boot_disk['name'] }}"
     {% endif -%}
-    auto_delete = "{{ instance['disks'][disk['index']]['autoDelete'] }}"
-    device_name = "{{ instance['disks'][disk['index']]['deviceName'] }}"
+    auto_delete = "{{ instance['disks'][boot_disk['index']]['autoDelete'] }}"
+    device_name = "{{ instance['disks'][boot_disk['index']]['deviceName'] }}"
   }
+
+  {% set other_disks = get_other_disks(instance['disks'], boot_disk['index']) -%}
+  {%- if other_disks|length > 0 -%}
+  {% for disk in other_disks -%}
+  attached_disk = {
+    source      = "{{ disk['source'] }}"
+    device_name = "{{ disk['deviceName'] }}"
+  }
+  {% endfor -%}
+  {%- endif %}
 
   {% for int in instance['networkInterfaces'] -%}
   network_interface {
@@ -47,7 +57,6 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
     on_host_maintenance = "{{ instance['scheduling']['onHostMaintenance'] }}"
     automatic_restart   = "{{ instance['scheduling']['automaticRestart'] }}"
   }
-
   service_account {
     scopes = [
     {% for s in instance['serviceAccounts'][0]['scopes'] -%}
