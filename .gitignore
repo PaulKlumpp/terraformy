@@ -1,1 +1,6 @@
 *.t
+*.tfstate
+*.tfstate*backup
+*.tfvars
+main.tf
+.terraform/

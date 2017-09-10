@@ -1,0 +1,66 @@
+{
+    "version": 3,
+    "terraform_version": "0.10.3",
+    "serial": 3,
+    "lineage": "026a3b68-e8d6-4ab1-8ea7-2ad3620bf9a3",
+    "modules": [
+        {
+            "path": [
+                "root"
+            ],
+            "outputs": {},
+            "resources": {
+                {% for instance in instances %}
+                "google_compute_instance.{{ instance['name'] }}": {
+                    "type": "google_compute_instance",
+                    "depends_on": [],
+                    "primary": {
+                        "id": "{{ instance['name'] }}",
+                        "attributes": {
+                            "boot_disk.#": "1",
+                            "boot_disk.0.auto_delete": "{{ instance['disks'][0]['autoDelete'] | lower }}",
+                            "boot_disk.0.device_name": "{{instance['disks'][0]['deviceName']}}",
+                            "boot_disk.0.initialize_params.#": "1",
+                            {%- set disk = get_disk_info(instance['disks'][0]['source']) %}
+                            "boot_disk.0.initialize_params.0.image": "{{ disk['source_image'] }}",
+                            "boot_disk.0.initialize_params.0.size": "{{ disk['size'] }}",
+                            "boot_disk.0.initialize_params.0.type": "{{ disk['type'] }}",
+                            "can_ip_forward": "{{ instance['canIpForward'] | lower }}",
+                            "id": "{{ instance['name'] }}",
+                            "machine_type": "{{ instance['machineType'].rsplit('/', 1)[-1] }}",
+                            {%- if 'items' in instance['metadata'] -%}
+                            {% for i in instance['metadata']['items'] %}
+                            "metadata.{{ i['key'] }}": "{{ i['value'] }}",
+                            {%- endfor %}
+                            {%- endif %}
+                            "name": "{{ instance['name'] }}",
+                            {% for int in instance['networkInterfaces'] -%}
+                            "network.#": "0",
+                            "network_interface.#": "1",
+                            {% if 'accessConfigs' in int -%}
+                            "network_interface.0.access_config.#": "1",
+                            {%- else -%}
+                            "network_interface.0.access_config.#": "0",
+                            {%- endif %}
+                            "network_interface.0.address": "{{ int['networkIP'] }}",
+                            {%- endfor %}
+                            "scheduling.#": "1",
+                            "scheduling.0.automatic_restart": "{{ instance['scheduling']['automaticRestart'] | lower }}",
+                            "scheduling.0.on_host_maintenance": "{{ instance['scheduling']['onHostMaintenance'] }}",
+                            "scheduling.0.preemptible": "{{ instance['scheduling']['preemptible'] | lower }}",
+                            "zone": "{{ instance['zone'].rsplit('/', 1)[-1] }}"
+                        },
+                        "meta": {
+                            "schema_version": "2"
+                        },
+                        "tainted": false
+                    },
+                    "deposed": [],
+                    "provider": ""
+                }{{ "," if not loop.last }}
+                {%- endfor %}
+            },
+            "depends_on": []
+        }
+    ]
+}

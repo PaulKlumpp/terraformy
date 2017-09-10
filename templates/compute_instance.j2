@@ -43,5 +43,13 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
     on_host_maintenance = "{{ instance['scheduling']['onHostMaintenance'] }}"
     automatic_restart   = "{{ instance['scheduling']['automaticRestart'] }}"
   }
+
+  service_account {
+    scopes = [
+    {% for s in instance['serviceAccounts'][0]['scopes'] -%}
+      "{{ s }}"{{ "," if not loop.last }}
+    {% endfor -%}
+    ]
+  }
 }
 {%- endfor -%}

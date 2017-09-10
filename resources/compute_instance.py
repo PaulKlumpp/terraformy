@@ -3,6 +3,8 @@ from jinja2 import Environment, FileSystemLoader
 import json
 import os
 import requests
+import sys
+
 
 token = os.getenv('TOKEN')
 project = os.getenv('PROJECT')
@@ -25,13 +27,20 @@ def get_disk_info(url):
             'type': disk['type'].rsplit('/', 1)[-1],
             'size': disk['sizeGb'],
             }
-
 # print(get_disk_info(''))
 # for i in list_instances():
 #     print(i)
-#
+
 env = Environment(loader=FileSystemLoader('templates'))
-template = env.get_template('compute_instance.j2')
+if len(sys.argv) > 1:
+    if str(sys.argv[1]) == 'state':
+        template = env.get_template('compute_instance.tfstate.j2')
+    elif str(sys.argv[1]) == 'config':
+        template = env.get_template('compute_instance.j2')
+    else:
+        raise ValueError('you need to specify to either generate config or state')
+else:
+    raise ValueError('you need to specify to either generate config or state')
 template.globals['get_disk_info'] = get_disk_info
 output_from_parsed_template = template.render(instances=list_instances())
 print output_from_parsed_template
