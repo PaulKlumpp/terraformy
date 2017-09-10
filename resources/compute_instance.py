@@ -21,16 +21,27 @@ def get_info(url):
     r = requests.get(url, headers=headers)
     return json.loads(r.content)
 
-def get_disk_info(url):
-    disk = get_info(url)
-    return {'source_image': disk['sourceImage'].rsplit('/', 1)[-1],
-            'type': disk['type'].rsplit('/', 1)[-1],
-            'size': disk['sizeGb'],
-            }
-# print(get_disk_info(''))
+def get_boot_disk_info(disks):
+    for idx, d in enumerate(disks):
+        if d['boot'] is True:
+            disk = get_info(d['source'])
+            return {'source_image': disk['sourceImage'].rsplit('/', 1)[-1],
+                    'type': disk['type'].rsplit('/', 1)[-1],
+                    'size': disk['sizeGb'],
+                    'index': idx,
+                    'existing': (True if 'lastDetachTimestamp' in disk else False),
+                    'name': disk['name'],
+                    }
+
+    # disk = get_info(url)
+    # return {'source_image': disk['sourceImage'].rsplit('/', 1)[-1],
+    #         'type': disk['type'].rsplit('/', 1)[-1],
+    #         'size': disk['sizeGb'],
+    #         }
+# print(get_info('https://www.googleapis.com/compute/v1/projects/infra-179014/zones/europe-west1-b/disks/instance-2'))
 # for i in list_instances():
 #     print(i)
-
+#
 env = Environment(loader=FileSystemLoader('templates'))
 if len(sys.argv) > 1:
     if str(sys.argv[1]) == 'state':
@@ -41,6 +52,6 @@ if len(sys.argv) > 1:
         raise ValueError('you need to specify to either generate config or state')
 else:
     raise ValueError('you need to specify to either generate config or state')
-template.globals['get_disk_info'] = get_disk_info
+template.globals['get_boot_disk_info'] = get_boot_disk_info
 output_from_parsed_template = template.render(instances=list_instances())
 print output_from_parsed_template

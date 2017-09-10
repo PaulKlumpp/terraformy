@@ -16,14 +16,18 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
   {% endif -%}
 
   boot_disk {
+  {%- set disk = get_boot_disk_info(instance['disks']) %}
+    {% if not disk['existing'] -%}
     initialize_params {
-      {%- set disk = get_disk_info(instance['disks'][0]['source']) %}
       image = "{{ disk['source_image'] }}"
       type  = "{{ disk['type'] }}"
       size  = "{{ disk['size'] }}"
     }
-    auto_delete = "{{ instance['disks'][0]['autoDelete'] }}"
-    device_name = "{{ instance['disks'][0]['deviceName'] }}"
+    {% else -%}
+    source = "{{ disk['name'] }}"
+    {% endif -%}
+    auto_delete = "{{ instance['disks'][disk['index']]['autoDelete'] }}"
+    device_name = "{{ instance['disks'][disk['index']]['deviceName'] }}"
   }
 
   {% for int in instance['networkInterfaces'] -%}
