@@ -9,10 +9,12 @@ import sys
 token = os.getenv('TOKEN')
 project = os.getenv('PROJECT')
 
+
 def list_instances():
     compute = googleapiclient.discovery.build('compute', 'v1')
     result = compute.instances().list(project=project, zone='europe-west1-b').execute()
     return result['items']
+
 
 def get_info(url):
     headers = {
@@ -20,6 +22,7 @@ def get_info(url):
     }
     r = requests.get(url, headers=headers)
     return json.loads(r.content)
+
 
 def get_boot_disk_info(disks):
     for idx, d in enumerate(disks):
@@ -41,7 +44,8 @@ def get_other_disks(disks, boot_disk_idx):
 
 # for i in list_instances():
 #     print(i)
-#
+
+
 env = Environment(loader=FileSystemLoader('templates'))
 if len(sys.argv) > 1:
     if str(sys.argv[1]) == 'state':
