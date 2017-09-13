@@ -14,3 +14,4 @@ $ terraform plan
 
 ## Current problems for compute instances
 * Multiple ssh keys aren't handled properly and errors occur
+* Tags aren't handled 
