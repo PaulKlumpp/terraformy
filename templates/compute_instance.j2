@@ -10,7 +10,7 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
   {% if 'items' in instance['metadata'] -%}
   metadata = {
     {% for i in instance['metadata']['items'] %}
-    {{ i['key'] }} = "{{ i['value'] }}"
+    {{ i['key'] }} = "{{ i['value'] | replace('\n', '\\n') }}"
     {%- endfor %}
   }
   {% endif -%}
@@ -51,12 +51,16 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
   }
   {% endfor -%}
 
+  {% if 'canIpForward' in instance -%}
   can_ip_forward        = "{{ instance['canIpForward'] }}"
+  {% endif -%}
   scheduling {
     preemptible         = "{{ instance['scheduling']['preemptible'] }}"
     on_host_maintenance = "{{ instance['scheduling']['onHostMaintenance'] }}"
     automatic_restart   = "{{ instance['scheduling']['automaticRestart'] }}"
   }
+
+  {% if 'serviceAccounts' in instance -%}
   service_account {
     scopes = [
     {% for s in instance['serviceAccounts'][0]['scopes'] -%}
@@ -64,5 +68,6 @@ resource "google_compute_instance" "{{ instance['name'] }}" {
     {% endfor -%}
     ]
   }
+  {% endif -%}
 }
 {%- endfor -%}

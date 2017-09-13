@@ -47,7 +47,7 @@
                             "machine_type": "{{ instance['machineType'].rsplit('/', 1)[-1] }}",
                             {%- if 'items' in instance['metadata'] -%}
                             {% for i in instance['metadata']['items'] %}
-                            "metadata.{{ i['key'] }}": "{{ i['value'] }}",
+                            "metadata.{{ i['key'] }}": "{{ i['value'] | replace('\n', '\\n') }}",
                             {%- endfor %}
                             {%- endif %}
                             "name": "{{ instance['name'] }}",
