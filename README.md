@@ -8,6 +8,7 @@
 
 Check with
 ```bash
+$ terraform init # download google provider module
 $ terraform plan
 ```
 
