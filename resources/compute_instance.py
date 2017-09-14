@@ -42,9 +42,6 @@ def get_other_disks(disks, boot_disk_idx):
     del attached_disks[boot_disk_idx]
     return attached_disks
 
-# for i in list_instances():
-#     print(i)
-
 
 env = Environment(loader=FileSystemLoader('templates'))
 if len(sys.argv) > 1:

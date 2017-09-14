@@ -1,8 +1,6 @@
 import googleapiclient.discovery
 from jinja2 import Environment, FileSystemLoader
-import json
 import os
-import requests
 import sys
 import sh
 
@@ -14,8 +12,6 @@ def list_rules():
     result = compute.firewalls().list(project=project).execute()
     return result['items']
 
-# for i in list_rules():
-#     print(i['name'])
 
 if len(sys.argv) > 1:
     if str(sys.argv[1]) == 'state':
