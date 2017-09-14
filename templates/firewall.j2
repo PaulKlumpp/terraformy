@@ -1,0 +1,37 @@
+{% for rule in rules %}
+resource "google_compute_firewall" "{{ rule['name'] }}" {
+  name        = "{{ rule['name'] }}"
+  network     = "{{ rule['network'].rsplit('/', 1)[-1] }}"
+  description = "{{ rule['description'] }}"
+
+  {% if 'allowed' in rule -%}
+  {%- for r in rule['allowed'] -%}
+  allow = {
+    protocol = "{{ r['IPProtocol']}}"
+    {% if 'ports' in r -%}
+    ports    = ["{{ r['ports']|join('", "') }}"]
+    {%- endif %}
+  }
+  {% endfor -%}
+  {% elif 'denied' in rule %}
+  {%- for r in rule['denied'] -%}
+  deny = {
+    protocol = "{{ r['IPProtocol']}}"
+    {% if 'ports' in r -%}
+    ports    = ["{{ r['ports']|join('", "') }}"]
+    {%- endif %}
+  }
+  {% endfor -%}
+  {%- endif -%}
+
+  {%- if 'sourceRanges' in rule %}
+  source_ranges = ["{{ rule['sourceRanges']|join('", "') }}"]
+  {%- elif 'sourceTags' in rule %}
+  source_tags = ["{{ rule['sourceTags']|join('", "') }}"]
+  {%- endif -%}
+
+  {% if 'targetTags' in rule %}
+  target_tags = ["{{ rule['targetTags']|join('", "') }}"]
+  {%- endif %}
+}
+{% endfor -%}
