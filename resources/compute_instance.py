@@ -8,11 +8,12 @@ import sys
 
 token = os.getenv('TOKEN')
 project = os.getenv('PROJECT')
+zone = os.getenv('ZONE')
 
 
 def list_instances():
     compute = googleapiclient.discovery.build('compute', 'v1')
-    result = compute.instances().list(project=project, zone='europe-west1-b').execute()
+    result = compute.instances().list(project=project, zone=zone).execute()
     return result['items']
 
 
