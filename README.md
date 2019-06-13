@@ -14,8 +14,8 @@
 * `python resources/compute_instance.py state > terraform.tfstate`
 
 *export firewall rules:*
-* `python resources/compute_instance.py state`
-* `python resources/compute_instance.py config > firewall.tf`
+* `python resources/firewall.py state`
+* `python resources/firewall.py config > firewall.tf`
 
 Check with
 ```bash
